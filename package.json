@@ -1,31 +1,29 @@
 {
-  "name": "wikidata-refs",
-  "version": "0.1.0",
-  "description": "Wikidata Reference Tool ========================",
+  "name": "wikidata-citoid-gadget",
+  "version": "0.2.0",
+  "description": "Wikidata Citoid Gadget",
   "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/filbertkm/wikidata-refs.git"
+    "url": "git+https://github.com/mvolz/wikidata-citoid-gadget.git"
   },
   "author": "Katie Filbert",
+  "contributors": "Marielle Volz",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/filbertkm/wikidata-refs/issues"
+    "url": "https://github.com/mvolz/wikidata-citoid-gadget/issues"
   },
-  "homepage": "https://github.com/filbertkm/wikidata-refs#readme",
+  "homepage": "https://github.com/mvolz/wikidata-citoid-gadget#readme",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-jscs": "^4.0.0",
-    "gulp-jshint": "^2.0.1",
-    "gulp-notify": "^2.2.0",
-    "jshint": "^2.9.2"
-  },
-  "dependencies": {
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-concat": "^2.6.1",
+    "gulp-jscs": "^4.1.0",
+    "gulp-jshint": "^2.0.1",
+    "gulp-notify": "^3.2.0",
+    "jshint": "^2.9.2",
     "jshint-stylish": "^2.2.1"
   }
 }

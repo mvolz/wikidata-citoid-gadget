@@ -4,7 +4,7 @@ var gulp = require('gulp'),
 	concat = require('gulp-concat');
 
 gulp.task('jshint', function() {
-	gulp.src('src/*.js')
+	return gulp.src('src/*.js')
 		.pipe(jshint('.jshintrc'))
 		.pipe(jshint.reporter('jshint-stylish'))
 		.pipe(jshint.reporter('fail'))
@@ -15,9 +15,9 @@ gulp.task('jshint', function() {
 });
 
 gulp.task('concat', function() {
-	gulp.src('./src/*.js')
+	return gulp.src('./src/*.js')
 		.pipe(concat('CiteTool.js'))
 		.pipe(gulp.dest('./dist/'));
 });
 
-gulp.task('default', [ 'jshint', 'concat' ]);
+gulp.task('default', gulp.series('jshint', 'concat' ));
