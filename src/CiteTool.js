@@ -29,6 +29,16 @@ CiteTool.prototype.init = function() {
 			self.initAutofillLink( e.target );
 		} );
 
+	this.pendingDialog = new mw.PendingDialog( {
+	  size: 'small'
+	} );
+
+	this.windowManager = new OO.ui.WindowManager();
+
+	$( 'body' ).append( this.windowManager.$element );
+
+	this.windowManager.addWindows( [ this.pendingDialog ] );
+
 };
 
 CiteTool.prototype.getConfig = function() {
@@ -55,11 +65,13 @@ CiteTool.prototype.initAutofillLink = function( target ) {
 		this.getConfig()
 			.done( function( config ) {
 				self.config = config;
-				self.citeToolReferenceEditor = new wb.CiteToolReferenceEditor( config );
+				self.citeToolReferenceEditor = new wb.CiteToolReferenceEditor( config, self.windowManager, self.pendingDialog);
 				self.citeToolAutofillLinkRenderer = new wb.CiteToolAutofillLinkRenderer(
 					config,
 					self.citoidClient,
-					self.citeToolReferenceEditor
+					self.citeToolReferenceEditor,
+					self.windowManager,
+					self.pendingDialog
 				);
 
 				self.checkReferenceAndAddAutofillLink( target );

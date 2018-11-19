@@ -2,8 +2,10 @@
 
 'use strict';
 
-function CiteToolReferenceEditor( config ) {
+function CiteToolReferenceEditor( config, windowManager, pendingDialog ) {
 	this.config = config;
+	this.windowManager = windowManager;
+	this.pendingDialog = pendingDialog;
 
 	this.citoidClient = new mw.CitoidClient();
 	this.sparql = new wb.queryService.api.Sparql();
@@ -128,6 +130,9 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		lv.startEditing();
 
 		refView._trigger( 'change' );
+
+		self.pendingDialog.popPending();
+		self.windowManager.closeWindow( self.pendingDialog );
 	}
 };
 

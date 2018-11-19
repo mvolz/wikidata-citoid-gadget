@@ -2,10 +2,12 @@
 
 'use strict';
 
-function CiteToolAutofillLinkRenderer( config, citoidClient, citeToolReferenceEditor ) {
+function CiteToolAutofillLinkRenderer( config, citoidClient, citeToolReferenceEditor, windowManager, pendingDialog ) {
 	this.config = config;
 	this.citoidClient = citoidClient;
 	this.citeToolReferenceEditor = citeToolReferenceEditor;
+	this.windowManager = windowManager;
+	this.pendingDialog = pendingDialog;
 }
 
 CiteToolAutofillLinkRenderer.prototype.renderLink = function( referenceView ) {
@@ -87,6 +89,9 @@ CiteToolAutofillLinkRenderer.prototype.onAutofillClick = function( target ) {
 	}
 
 	var value = this.getLookupSnakValue( reference );
+
+	self.windowManager.openWindow( self.pendingDialog );
+	self.pendingDialog.pushPending();
 
 	this.citoidClient.search( value )
 		.done( function( data ) {
