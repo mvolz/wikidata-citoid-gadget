@@ -8,6 +8,7 @@ function CiteToolReferenceEditor( config, windowManager, pendingDialog ) {
 	this.pendingDialog = pendingDialog;
 
 	this.citoidClient = new mw.CitoidClient();
+	this.openRefineClient = new mw.OpenRefineClient();
 	this.sparql = new wb.queryService.api.Sparql();
 }
 
@@ -20,10 +21,39 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		self = this;
 
 	var addedSnakItem = false;
+	var snakPromises = [];
 
 	$.each( data, function( key, val ) {
 		var propertyId = self.getPropertyForCitoidData( key );
 
+		// Some default values for an openRefine query
+		var query = {
+			query : val,
+			limit : 1,
+			type : null,
+			type_strict : "any"
+		};
+
+		// Method used for adding item snaks with OpenRefine
+		function addItemSnak( q ) {
+			self.openRefineClient.search( q ).then( function ( results ) {
+				if ( results.result[0] ) {
+					lv.addItem(
+						self.getWikibaseItemSnak( propertyId, results.result[0].id )
+					);
+			 		addedSnakItem = true;
+				}
+			});
+		}
+
+		// var properties = [
+		// 	{ p : self.getPropertyForCitoidData("DOI"), v : data.DOI }
+		//	];
+
+		// var properties = [
+		// 	{ p : self.getPropertyForCitoidData("ISSN"), v : data.ISSN }
+		//	];
+		
 		if ( !propertyId ) {
 			console.log( "PropertyID missing for key: " + key );
 			return;
@@ -43,7 +73,6 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 					val,
 					self.getTitleLanguage( val, data )
 				) );
-
 				addedSnakItem = true;
 
 				break;
@@ -56,10 +85,24 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 					);
 
 					addedSnakItem = true;
-				} catch ( e ){
+				} catch ( e ) {
 					console.log( e );
 				}
 
+				break;
+			// Item properties
+			case 'language':
+				query.type = ['Q1288568', 'Q33742', 'Q951873', 'Q33384', 'Q34770', 'Q1002697']; // Modern language, natural language, language, ethnolect, dialect
+				snakPromises.push( addItemSnak( query ) );
+				break;
+			case 'publicationTitle':
+				query.type = null; // Too many to enumerate
+				//query.type = ['Q5633421', 'Q3331189', 'Q41298', 'Q1110794']; // scientific journal, edition translation etc, magazine, dailyn newspaper...
+				snakPromises.push( addItemSnak( query ) );
+				break;
+			case 'publisher':
+				query.type = ['Q2085381', 'Q479716', 'Q1114515', 'Q149985', 'Q748822', 'Q18127', 'Q2024496'];
+				snakPromises.push( addItemSnak( query ) );
 				break;
 			// String properties
 			case 'ISSN':
@@ -127,19 +170,23 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 	} );
 
 	if ( addedSnakItem === true ) {
-		lv.startEditing();
-
 		refView._trigger( 'change' );
-		self.pendingDialog.popPending();
-		self.windowManager.closeWindow( self.pendingDialog );
+
+        $.when( snakPromises ).done( function() {
+        	lv.startEditing().then( function() {
+        		refView._trigger( 'change' );
+        		self.pendingDialog.popPending();
+				self.windowManager.closeWindow( self.pendingDialog );
+        	});
+		});
 	}
 };
 
 CiteToolReferenceEditor.prototype.getReferenceSnakListView = function( refView ) {
 	var refListView = refView.$listview.data( 'listview' ),
-        snakListView = refListView.items(),
-        snakListViewData = snakListView.data( 'snaklistview' ),
-        listView = snakListViewData.$listview.data( 'listview' );
+		snakListView = refListView.items(),
+		snakListViewData = snakListView.data( 'snaklistview' ),
+		listView = snakListViewData.$listview.data( 'listview' );
 
 	return listView;
 };
@@ -161,13 +208,13 @@ CiteToolReferenceEditor.prototype.getQueryPropertyForCitoidData = function( key 
 };
 
 CiteToolReferenceEditor.prototype.getTitleLanguage = function( title, data ) {
-    var languageCode = mw.config.get( 'wgUserLanguage' );
+	var languageCode = mw.config.get( 'wgUserLanguage' );
 
-    if ( data.language ) {
-        if ( data.language === 'en-US' ) {
-            languageCode = 'en';
-        }
-    }
+	if ( data.language ) {
+		if ( data.language === 'en-US' ) {
+			languageCode = 'en';
+		}
+	}
 
 	return languageCode;
 };
@@ -208,18 +255,18 @@ CiteToolReferenceEditor.prototype.lookupItemByIdentifier = function( propertyId,
 		+ "FILTER ( ?identifier in ('" + value + "') ) "
 		+ "}";
 
-    var dfd = $.Deferred(),
-        baseUrl = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql';
+	var dfd = $.Deferred(),
+		baseUrl = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql';
 
 	$.ajax( {
-        method: 'GET',
-        url: baseUrl,
-        data: {
+		method: 'GET',
+		url: baseUrl,
+		data: {
 			query: query,
 			format: 'json'
 		}
-    } )
-    .done( function( data ) {
+	} )
+	.done( function( data ) {
 		var uriPattern = /^http:\/\/www.wikidata.org\/entity\/([PQ]\d+)$/;
 
 		console.log( data.results );
@@ -233,9 +280,9 @@ CiteToolReferenceEditor.prototype.lookupItemByIdentifier = function( propertyId,
 		} else {
 			dfd.resolve( false );
 		}
-    } );
+	} );
 
-    return dfd.promise();
+	return dfd.promise();
 };
 
 wb.CiteToolReferenceEditor = CiteToolReferenceEditor;
