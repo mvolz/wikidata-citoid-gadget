@@ -130,7 +130,6 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		lv.startEditing();
 
 		refView._trigger( 'change' );
-
 		self.pendingDialog.popPending();
 		self.windowManager.closeWindow( self.pendingDialog );
 	}
