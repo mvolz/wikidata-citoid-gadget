@@ -15,6 +15,49 @@ function CiteToolReferenceEditor( config, windowManager, pendingDialog ) {
 CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( data, referenceView ) {
 	console.log( data );
 
+	var publicationTypes = [
+		'Q5633421',
+		'Q41298',
+		'Q1110794',
+		'Q35127',
+		'Q32635',
+		"Q838948",
+		"Q5057302",
+		"Q686822",
+		"Q17928402",
+		"Q571",
+		"Q3331189",
+		"Q1980247",
+		"Q2334719",
+		"Q5057302",
+		"Q23927052",
+		"Q4423781",
+		"Q49848",
+		"Q9158",
+		"Q17329259",
+		"Q11424",
+		"Q7216866",
+		"Q545861",
+		"Q30070565",
+		"Q178651",
+		"Q191067",
+		"Q133492",
+		"Q191067",
+		"Q87167",
+		"Q4006",
+		"Q191067",
+		"Q253623",
+		"Q5057302",
+		"Q604733",
+		"Q1555508",
+		"Q10870555",
+		"Q820655",
+		"Q1266946",
+		"Q21191270",
+		"Q30070675",
+		"Q36774"
+	];
+
 	var refView = $( referenceView ).data( 'referenceview' ),
 		lv = this.getReferenceSnakListView( refView ),
 		// usedProperties = refView.value().getSnaks().getPropertyOrder(),
@@ -96,12 +139,12 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 				snakPromises.push( addItemSnak( query ) );
 				break;
 			case 'publicationTitle':
-				query.type = null; // Too many to enumerate
-				//query.type = ['Q5633421', 'Q3331189', 'Q41298', 'Q1110794']; // scientific journal, edition translation etc, magazine, dailyn newspaper...
+				//query.type = null; // Too many to enumerate fully, do by score instead?
+				query.type = publicationTypes;
 				snakPromises.push( addItemSnak( query ) );
 				break;
 			case 'publisher':
-				query.type = ['Q2085381', 'Q479716', 'Q1114515', 'Q149985', 'Q748822', 'Q18127', 'Q2024496'];
+				query.type = ['Q2085381', 'Q479716', 'Q1114515', 'Q149985', 'Q748822', 'Q18127', 'Q2024496', 'Q327333'];
 				snakPromises.push( addItemSnak( query ) );
 				break;
 			// String properties

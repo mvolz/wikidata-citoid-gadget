@@ -89,8 +89,18 @@ CiteTool.prototype.checkReferenceAndAddAutofillLink = function( target ) {
 
 	var reference = this.getReferenceFromView( target );
 
-	if ( reference && this.getLookupSnakProperty( reference ) !== null ) {
-		this.citeToolAutofillLinkRenderer.renderLink( target );
+	if ( !reference ) {
+		return;
+	}
+
+	this.citeToolAutofillLinkRenderer.renderLink( target );
+
+	if ( this.getLookupSnakProperty( reference ) !== null ) {
+		// Disable for invalid properties
+		this.citeToolAutofillLinkRenderer.disableLink( target );
+	} else {
+		// Enable if property is valid
+		this.citeToolAutofillLinkRenderer.enableLink( target );
 	}
 };
 
