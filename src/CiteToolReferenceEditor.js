@@ -13,7 +13,6 @@ function CiteToolReferenceEditor( config, windowManager, pendingDialog ) {
 }
 
 CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( data, referenceView ) {
-	console.log( data );
 
 	var publicationTypes = [
 		'Q5633421',
@@ -58,6 +57,8 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		"Q36774"
 	];
 
+	var statedIn = "P248";
+
 	var refView = $( referenceView ).data( 'referenceview' ),
 		lv = this.getReferenceSnakListView( refView ),
 		// usedProperties = refView.value().getSnaks().getPropertyOrder(),
@@ -65,6 +66,18 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 
 	var addedSnakItem = false;
 	var snakPromises = [];
+
+	// Try to add "stated in" statement by search via doi
+	var doiProm = self.openRefineClient.search( data.DOI ).then( function ( results ) {
+		if ( results.result[0] ) {
+			lv.addItem(
+				self.getWikibaseItemSnak( statedIn, results.result[0].id )
+			);
+			addedSnakItem = true;
+		}
+	});
+
+	snakPromises.push(doiProm);
 
 	$.each( data, function( key, val ) {
 		var propertyId = self.getPropertyForCitoidData( key );
@@ -79,12 +92,12 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 
 		// Method used for adding item snaks with OpenRefine
 		function addItemSnak( q ) {
-			self.openRefineClient.search( q ).then( function ( results ) {
+			return self.openRefineClient.search( q ).then( function ( results ) {
 				if ( results.result[0] ) {
 					lv.addItem(
 						self.getWikibaseItemSnak( propertyId, results.result[0].id )
 					);
-			 		addedSnakItem = true;
+					addedSnakItem = true;
 				}
 			});
 		}
@@ -158,6 +171,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 			case 'numPages':
 			case 'PMCID':
 			case 'DOI':
+
 				var str = false;
 				if (typeof val === 'string') {
 					str = true;
@@ -213,14 +227,12 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 	} );
 
 	if ( addedSnakItem === true ) {
-		refView._trigger( 'change' );
 
-        $.when( snakPromises ).done( function() {
-        	lv.startEditing().then( function() {
-        		refView._trigger( 'change' );
-        		self.pendingDialog.popPending();
+		$.when( snakPromises ).done( function() {
+			lv.startEditing().then( function() {
+				self.pendingDialog.popPending();
 				self.windowManager.closeWindow( self.pendingDialog );
-        	});
+			});
 		});
 	}
 };
@@ -311,8 +323,6 @@ CiteToolReferenceEditor.prototype.lookupItemByIdentifier = function( propertyId,
 	} )
 	.done( function( data ) {
 		var uriPattern = /^http:\/\/www.wikidata.org\/entity\/([PQ]\d+)$/;
-
-		console.log( data.results );
 
 		if ( data.results.bindings.length > 0 ) {
 			var result = data.results.bindings[0],
