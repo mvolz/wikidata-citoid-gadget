@@ -25,7 +25,7 @@ OpenRefineClient.prototype.search = function( query ) {
 			data: {
 				query: JSON.stringify(query)
 			}
-		} );   	
+		} );
 	}
 };
 

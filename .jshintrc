@@ -6,6 +6,7 @@
 	],
 	"bitwise": true,
 	"curly": true,
+	"esversion": 6,
 	"eqeqeq": true,
 	"freeze": true,
 	"latedef": true,

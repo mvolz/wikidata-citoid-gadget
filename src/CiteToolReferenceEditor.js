@@ -69,6 +69,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 
 	// Try to add "stated in" statement by search via doi
 	var doiProm = self.openRefineClient.search( data.DOI ).then( function ( results ) {
+		console.log('doi');
 		if ( results.result[0] ) {
 			lv.addItem(
 				self.getWikibaseItemSnak( statedIn, results.result[0].id )
@@ -93,6 +94,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		// Method used for adding item snaks with OpenRefine
 		function addItemSnak( q ) {
 			return self.openRefineClient.search( q ).then( function ( results ) {
+				console.log( propertyId );
 				if ( results.result[0] ) {
 					lv.addItem(
 						self.getWikibaseItemSnak( propertyId, results.result[0].id )
@@ -109,7 +111,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		// var properties = [
 		// 	{ p : self.getPropertyForCitoidData("ISSN"), v : data.ISSN }
 		//	];
-		
+
 		if ( !propertyId ) {
 			console.log( "PropertyID missing for key: " + key );
 			return;
@@ -155,12 +157,63 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 				//query.type = null; // Too many to enumerate fully, do by score instead?
 				query.type = publicationTypes;
 				snakPromises.push( addItemSnak( query ) );
+
+				lv.addItem( self.getMonolingualValueSnak(
+					'P6333',
+					val,
+					self.getTitleLanguage( val, data )
+				) );
+				addedSnakItem = true;
 				break;
 			case 'publisher':
 				query.type = ['Q2085381', 'Q479716', 'Q1114515', 'Q149985', 'Q748822', 'Q18127', 'Q2024496', 'Q327333'];
 				snakPromises.push( addItemSnak( query ) );
 				break;
+			// number properties
+			case 'numPages':
+				break;
 			// String properties
+			case 'author':
+			case 'contributor':
+			case 'editor':
+			case 'translator':
+			case 'seriesEditor':
+			case 'interviewee':
+			case 'interviewer':
+			case 'director':
+			case 'scriptwriter':
+			case 'producer':
+			case 'castMember':
+			case 'sponsor':
+			case 'counsel':
+			case 'inventor':
+			case 'attorneyAgent':
+			case 'recipient':
+			case 'performer':
+			case 'composer':
+			case 'wordsBy':
+			case 'cartographer':
+			case 'programmer':
+			case 'artist':
+			case 'commenter':
+			case 'presenter':
+			case 'guest':
+			case 'podcaster':
+			case 'reviewedAuthor':
+			case 'cosponsor':
+			case 'bookAuthor':
+				for (var i = 0; i < val.length; i++) {
+					try {
+						lv.addItem(
+							self.getStringSnak( propertyId, val[i][0] + " " + val[i][1] )
+						);
+						addedSnakItem = true;
+					}
+					catch( e ) {
+						console.log(e);
+					}
+				}
+				break;
 			case 'ISSN':
 			case 'ISBN':
 			case 'PMID':
@@ -168,10 +221,8 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 			case 'pages':
 			case 'issue':
 			case 'volume':
-			case 'numPages':
 			case 'PMCID':
 			case 'DOI':
-
 				var str = false;
 				if (typeof val === 'string') {
 					str = true;
@@ -186,7 +237,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 					}
 				// For array of identifiers, add every one
 				} else if ( Array.isArray( val ) ) {
-					for (var i = 0; i < val.length; i++) {
+					for (i = 0; i < val.length; i++) {
 						try {
 							lv.addItem(
 								self.getStringSnak( propertyId, val[i] )
@@ -228,7 +279,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 
 	if ( addedSnakItem === true ) {
 
-		$.when( snakPromises ).done( function() {
+		$.when.apply( $, snakPromises ).then( function() {
 			lv.startEditing().then( function() {
 				self.pendingDialog.popPending();
 				self.windowManager.closeWindow( self.pendingDialog );
@@ -283,6 +334,13 @@ CiteToolReferenceEditor.prototype.getMonolingualValueSnak = function( propertyId
 
 CiteToolReferenceEditor.prototype.getStringSnak = function( propertyId, val) {
 	return new wb.datamodel.PropertyValueSnak(
+		propertyId,
+		new dv.StringValue( val )
+	);
+};
+
+CiteToolReferenceEditor.prototype.getNumSnak = function( propertyId, val) {
+	return new wb.datamodel.NumberValueSnak(
 		propertyId,
 		new dv.StringValue( val )
 	);
