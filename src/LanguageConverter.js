@@ -48,13 +48,17 @@ LanguageConverter.prototype.init = function () {
 
 // Get IETF language code root as fallback
 const getCodeFallback = function ( code ) {
-	code = code.split("-");
+	code = code.split( "-" );
 	code = code[0];
 	return code;
 };
 
 // Common to getContentCode and getMonolingualCode
-const getCode = function( value, cachedCodes ) {
+const getCode = function( value, cachedCodes, defaultCode ) {
+	if ( !value ) {
+		return defaultCode;
+	}
+
 	value = value.toLowerCase();
 	let code = this.cachedCodes[ value ];
 
@@ -62,7 +66,7 @@ const getCode = function( value, cachedCodes ) {
 		code = getCodeFallback( value );
 		code = this.cachedCodes[ code ];
 		if ( !code ) {
-			return 'en';
+			return defaultCode;
 		}
 	}
 	code = code.code;
@@ -71,12 +75,12 @@ const getCode = function( value, cachedCodes ) {
 
 // Get valid codes for multilingual text
 LanguageConverter.prototype.getMonolingualCode = function( value ) {
-	return getCode( value, this.monolingualCodes );
+	return getCode( value, this.monolingualCodes, 'und');
 };
 
 // Get valid codes for content languages i.e. labels and desc
 LanguageConverter.prototype.getContentCode = function( value ) {
-	return getCode( value, this.contentCodes );
+	return getCode( value, this.contentCodes, 'en');
 };
 
 LanguageConverter.prototype.getQID = function( value ) {

@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/mvolz/wikidata-citoid-gadget#readme",
   "devDependencies": {
+    "assert": "^1.4.1",
     "gulp": "^4.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-jscs": "^4.1.0",

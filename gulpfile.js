@@ -1,7 +1,7 @@
-var gulp = require('gulp'),
-	jshint = require('gulp-jshint'),
-	notify = require('gulp-notify'),
-	concat = require('gulp-concat');
+const gulp = require('gulp');
+const jshint = require('gulp-jshint');
+const notify = require('gulp-notify');
+const concat = require('gulp-concat');
 
 gulp.task('jshint', function() {
 	return gulp.src('src/*.js')
@@ -20,4 +20,4 @@ gulp.task('concat', function() {
 		.pipe(gulp.dest('./dist/'));
 });
 
-gulp.task('default', gulp.series('jshint', 'concat' ));
+gulp.task('default', gulp.series('jshint', 'concat'));
