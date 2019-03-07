@@ -8,56 +8,11 @@ function CiteToolReferenceEditor( config, windowManager, pendingDialog ) {
 	this.pendingDialog = pendingDialog;
 
 	this.citoidClient = new mw.CitoidClient();
-	this.openRefineClient = new mw.OpenRefineClient();
 	this.sparql = new wb.queryService.api.Sparql();
+	this.lc = new mw.LanguageConverter();
 }
 
 CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( data, referenceView ) {
-
-	var publicationTypes = [
-		'Q5633421',
-		'Q41298',
-		'Q1110794',
-		'Q35127',
-		'Q32635',
-		"Q838948",
-		"Q5057302",
-		"Q686822",
-		"Q17928402",
-		"Q571",
-		"Q3331189",
-		"Q1980247",
-		"Q2334719",
-		"Q5057302",
-		"Q23927052",
-		"Q4423781",
-		"Q49848",
-		"Q9158",
-		"Q17329259",
-		"Q11424",
-		"Q7216866",
-		"Q545861",
-		"Q30070565",
-		"Q178651",
-		"Q191067",
-		"Q133492",
-		"Q191067",
-		"Q87167",
-		"Q4006",
-		"Q191067",
-		"Q253623",
-		"Q5057302",
-		"Q604733",
-		"Q1555508",
-		"Q10870555",
-		"Q820655",
-		"Q1266946",
-		"Q21191270",
-		"Q30070675",
-		"Q36774"
-	];
-
-	var statedIn = "P248";
 
 	var refView = $( referenceView ).data( 'referenceview' ),
 		lv = this.getReferenceSnakListView( refView ),
@@ -65,44 +20,10 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 		self = this;
 
 	var addedSnakItem = false;
-	var snakPromises = [];
-
-	// Try to add "stated in" statement by search via doi
-	var doiProm = self.openRefineClient.search( data.DOI ).then( function ( results ) {
-		console.log('doi');
-		if ( results.result[0] ) {
-			lv.addItem(
-				self.getWikibaseItemSnak( statedIn, results.result[0].id )
-			);
-			addedSnakItem = true;
-		}
-	});
-
-	snakPromises.push(doiProm);
 
 	$.each( data, function( key, val ) {
 		var propertyId = self.getPropertyForCitoidData( key );
 
-		// Some default values for an openRefine query
-		var query = {
-			query : val,
-			limit : 1,
-			type : null,
-			type_strict : "any"
-		};
-
-		// Method used for adding item snaks with OpenRefine
-		function addItemSnak( q ) {
-			return self.openRefineClient.search( q ).then( function ( results ) {
-				console.log( propertyId );
-				if ( results.result[0] ) {
-					lv.addItem(
-						self.getWikibaseItemSnak( propertyId, results.result[0].id )
-					);
-					addedSnakItem = true;
-				}
-			});
-		}
 
 		// var properties = [
 		// 	{ p : self.getPropertyForCitoidData("DOI"), v : data.DOI }
@@ -129,7 +50,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 				lv.addItem( self.getMonolingualValueSnak(
 					propertyId,
 					val,
-					self.getTitleLanguage( val, data )
+					self.getTitleLanguage( data )
 				) );
 				addedSnakItem = true;
 
@@ -150,24 +71,16 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 				break;
 			// Item properties
 			case 'language':
-				query.type = ['Q1288568', 'Q33742', 'Q951873', 'Q33384', 'Q34770', 'Q1002697']; // Modern language, natural language, language, ethnolect, dialect
-				snakPromises.push( addItemSnak( query ) );
 				break;
 			case 'publicationTitle':
-				//query.type = null; // Too many to enumerate fully, do by score instead?
-				query.type = publicationTypes;
-				snakPromises.push( addItemSnak( query ) );
-
 				lv.addItem( self.getMonolingualValueSnak(
-					'P6333',
+					propertyId,
 					val,
-					self.getTitleLanguage( val, data )
+					self.getTitleLanguage( data )
 				) );
 				addedSnakItem = true;
 				break;
 			case 'publisher':
-				query.type = ['Q2085381', 'Q479716', 'Q1114515', 'Q149985', 'Q748822', 'Q18127', 'Q2024496', 'Q327333'];
-				snakPromises.push( addItemSnak( query ) );
 				break;
 			// number properties
 			case 'numPages':
@@ -279,12 +192,11 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 
 	if ( addedSnakItem === true ) {
 
-		$.when.apply( $, snakPromises ).then( function() {
-			lv.startEditing().then( function() {
-				self.pendingDialog.popPending();
-				self.windowManager.closeWindow( self.pendingDialog );
-			});
+		lv.startEditing().then( function() {
+			self.pendingDialog.popPending();
+			self.windowManager.closeWindow( self.pendingDialog );
 		});
+
 	}
 };
 
@@ -313,16 +225,9 @@ CiteToolReferenceEditor.prototype.getQueryPropertyForCitoidData = function( key 
 	return null;
 };
 
-CiteToolReferenceEditor.prototype.getTitleLanguage = function( title, data ) {
-	var languageCode = mw.config.get( 'wgUserLanguage' );
+CiteToolReferenceEditor.prototype.getTitleLanguage = function( data ) {
 
-	if ( data.language ) {
-		if ( data.language === 'en-US' ) {
-			languageCode = 'en';
-		}
-	}
-
-	return languageCode;
+	return this.lc.getMonolingualCode(data.language);
 };
 
 CiteToolReferenceEditor.prototype.getMonolingualValueSnak = function( propertyId, title, languageCode ) {

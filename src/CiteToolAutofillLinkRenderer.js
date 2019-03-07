@@ -115,7 +115,7 @@ CiteToolAutofillLinkRenderer.prototype.onAutofillClick = function( target ) {
 	self.pendingDialog.getActionProcess.call( self.pendingDialog, 'waiting' );
 
 	this.citoidClient.search( value )
-		.then( 
+		.then(
 			//success
 			function( data ) {
 				if ( data[0] ) {
