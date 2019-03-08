@@ -39,6 +39,20 @@ CiteTool.prototype.init = function() {
 
 	this.windowManager.addWindows( [ this.pendingDialog ] );
 
+	this.getConfig()
+		.done( function( config ) {
+			self.config = config;
+			self.citeToolReferenceEditor = new wb.CiteToolReferenceEditor( config, self.windowManager, self.pendingDialog );
+			self.citeToolAutofillLinkRenderer = new wb.CiteToolAutofillLinkRenderer(
+				config,
+				self.citoidClient,
+				self.citeToolReferenceEditor,
+				self.windowManager,
+				self.pendingDialog
+			);
+
+		} );
+
 };
 
 CiteTool.prototype.getConfig = function() {
@@ -61,25 +75,9 @@ CiteTool.prototype.getConfig = function() {
 CiteTool.prototype.initAutofillLink = function( target ) {
 	var self = this;
 
-	if ( this.config === null ) {
-		this.getConfig()
-			.done( function( config ) {
-				self.config = config;
-				self.citeToolReferenceEditor = new wb.CiteToolReferenceEditor( config, self.windowManager, self.pendingDialog);
-				self.citeToolAutofillLinkRenderer = new wb.CiteToolAutofillLinkRenderer(
-					config,
-					self.citoidClient,
-					self.citeToolReferenceEditor,
-					self.windowManager,
-					self.pendingDialog
-				);
+	var refViews = $( target ).closest( '.wikibase-referenceview' );
+	self.checkReferenceAndAddAutofillLink( refViews[0] );
 
-				self.checkReferenceAndAddAutofillLink( target );
-			} );
-	} else {
-		var refViews = $( target ).closest( '.wikibase-referenceview' );
-		self.checkReferenceAndAddAutofillLink( refViews[0] );
-	}
 };
 
 CiteTool.prototype.checkReferenceAndAddAutofillLink = function( target ) {

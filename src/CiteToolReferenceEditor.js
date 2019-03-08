@@ -10,6 +10,7 @@ function CiteToolReferenceEditor( config, windowManager, pendingDialog ) {
 	this.citoidClient = new mw.CitoidClient();
 	this.openRefineClient = new mw.OpenRefineClient();
 	this.sparql = new wb.queryService.api.Sparql();
+	this.lc = new mw.LanguageConverter();
 }
 
 CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( data, referenceView ) {
@@ -129,7 +130,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 				lv.addItem( self.getMonolingualValueSnak(
 					propertyId,
 					val,
-					self.getTitleLanguage( val, data )
+					self.getTitleLanguage( data )
 				) );
 				addedSnakItem = true;
 
@@ -161,7 +162,7 @@ CiteToolReferenceEditor.prototype.addReferenceSnaksFromCitoidData = function( da
 				lv.addItem( self.getMonolingualValueSnak(
 					'P6333',
 					val,
-					self.getTitleLanguage( val, data )
+					self.getTitleLanguage( data )
 				) );
 				addedSnakItem = true;
 				break;
@@ -313,16 +314,8 @@ CiteToolReferenceEditor.prototype.getQueryPropertyForCitoidData = function( key 
 	return null;
 };
 
-CiteToolReferenceEditor.prototype.getTitleLanguage = function( title, data ) {
-	var languageCode = mw.config.get( 'wgUserLanguage' );
-
-	if ( data.language ) {
-		if ( data.language === 'en-US' ) {
-			languageCode = 'en';
-		}
-	}
-
-	return languageCode;
+CiteToolReferenceEditor.prototype.getTitleLanguage = function( data ) {
+	return this.lc.getMonolingualCode(data.language);
 };
 
 CiteToolReferenceEditor.prototype.getMonolingualValueSnak = function( propertyId, title, languageCode ) {
