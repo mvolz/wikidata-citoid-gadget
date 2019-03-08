@@ -1,7 +1,7 @@
 Wikidata Reference Tool
 ========================
 
-Tool for making it easier to add references on Wikidata, with help of the Citoid service.
+Tool for making it easier to add references on Wikidata, with help of the Citoid service. This master branch is configured for test.wikidata. For the source usable on wikidata, switch to the openrefine branch. 
 
 ## Install
 
